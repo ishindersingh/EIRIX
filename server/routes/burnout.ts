@@ -45,7 +45,12 @@ let featureMins: number[] = [];
 let featureMaxs: number[] = [];
 
 function loadDataset() {
-  const csvPath = path.resolve(__dirname, "../../public/data/student.csv");
+  const csvPath = path.resolve(
+    __dirname,
+    process.env.NODE_ENV === "production"
+      ? "../../public/data/student.csv"
+      : "../../public/data/student.csv"
+  );
   const raw = fs.readFileSync(csvPath, "utf-8");
   const lines = raw.split("\n").filter(l => l.trim() && !l.startsWith("student_id"));
 
