@@ -8,7 +8,7 @@ import { handleStudyTips, handleScreenChallenges, handleSleepContent, handleStre
 import { handleGetDeadlines, handleAddDeadline, handleUpdateDeadline, handleDeleteDeadline, handleToggleComplete } from "./routes/deadlines";
 import { handleGetGoals, handleAddGoal, handleUpdateGoal, handleDeleteGoal, handleGetDates, handleAddDate, handleDeleteDate } from "./routes/settings";
 import { handleParentOverview, handleParentTrend, handleParentAlerts, handleMarkAlertRead, handleMarkAllRead } from "./routes/parent";
-import { handleStudentLogin, handleParentLogin, handleMentorLogin, handleStudentLookup, handleGetStudents, handleMentorStudents } from "./routes/auth";
+import { handleStudentLogin, handleParentLogin, handleMentorLogin, handleStudentLookup, handleGetStudents, handleMentorStudents, handleGetVerifiedStudents, handleCheckVerified } from "./routes/auth";
 
 export function createServer() {
   const app = express();
@@ -29,6 +29,8 @@ export function createServer() {
   app.post("/api/auth/mentor/login",        handleMentorLogin);
   app.get("/api/auth/student/:rollNo",      handleStudentLookup);
   app.get("/api/auth/students",             handleGetStudents);
+  app.get("/api/auth/verified-students",    handleGetVerifiedStudents);
+  app.get("/api/auth/verify/:rollNo",       handleCheckVerified);
   app.get("/api/auth/mentor/:employeeId/students", handleMentorStudents);
 
   // Legacy login (keep for compatibility)
