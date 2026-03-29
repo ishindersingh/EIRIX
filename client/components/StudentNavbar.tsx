@@ -3,13 +3,14 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "../context/ThemeContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 const NAV_ITEMS = [
-  { id: "input",    icon: LayoutDashboard, label: "Dashboard"     },
-  { id: "score",    icon: TrendingUp,      label: "Burnout Score" },
-  { id: "graph",    icon: BarChart2,       label: "Graph"         },
-  { id: "insights", icon: Lightbulb,       label: "Insights"      },
-  { id: "history",  icon: ClockIcon,       label: "History"       },
+  { id: "input",    icon: LayoutDashboard, key: "dashboard"    },
+  { id: "score",    icon: TrendingUp,      key: "burnoutScore" },
+  { id: "graph",    icon: BarChart2,       key: "graph"        },
+  { id: "insights", icon: Lightbulb,       key: "insights"     },
+  { id: "history",  icon: ClockIcon,       key: "history"      },
 ];
 
 interface Props {
@@ -19,6 +20,7 @@ interface Props {
 
 export default function StudentNavbar({ activeTab, onTabChange }: Props) {
   const { darkMode, setDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <aside className="w-64 glass border-r border-white/20 hidden md:flex flex-col p-6 space-y-6 dark:border-white/10">
@@ -42,7 +44,7 @@ export default function StudentNavbar({ activeTab, onTabChange }: Props) {
             )}
           >
             <item.icon className="w-5 h-5 shrink-0" />
-            <span className="font-semibold">{item.label}</span>
+            <span className="font-semibold">{t(item.key)}</span>
           </button>
         ))}
 
@@ -53,10 +55,10 @@ export default function StudentNavbar({ activeTab, onTabChange }: Props) {
 
         {/* External page links */}
         {[
-          { to: "/eira",      icon: Bot,      label: "EIRA Chatbot" },
-          { to: "/resources", icon: BookOpen, label: "Resources"    },
-          { to: "/deadlines", icon: ClockIcon,label: "Deadlines"    },
-          { to: "/settings",  icon: Settings, label: "Settings"     },
+          { to: "/eira",      icon: Bot,      label: t("eira")      },
+          { to: "/resources", icon: BookOpen, label: t("resources") },
+          { to: "/deadlines", icon: ClockIcon,label: t("deadlines") },
+          { to: "/settings",  icon: Settings, label: t("settings")  },
         ].map(({ to, icon: Icon, label }) => (
           <Link
             key={to}
@@ -75,7 +77,7 @@ export default function StudentNavbar({ activeTab, onTabChange }: Props) {
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
             {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-            <span className="font-semibold text-sm">Dark Mode</span>
+            <span className="font-semibold text-sm">{t("darkMode")}</span>
           </div>
           <button
             onClick={() => setDarkMode(!darkMode)}
@@ -95,13 +97,16 @@ export default function StudentNavbar({ activeTab, onTabChange }: Props) {
           <LanguageSwitcher />
         </div>
 
+        <div className="px-2 py-1">
+          <LanguageSwitcher />
+        </div>
         {/* Sign out */}
         <Link
           to="/"
           className="flex items-center space-x-3 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors font-semibold"
         >
           <LogOut className="w-5 h-5" />
-          <span>Sign Out</span>
+          <span>{t("signOut")}</span>
         </Link>
       </div>
     </aside>

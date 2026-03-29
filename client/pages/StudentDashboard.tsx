@@ -9,6 +9,7 @@ import History from "../components/History";
 import BurnoutGraph from "../features/graph/BurnoutGraph";
 import { DataProvider } from "../context/DataContext";
 import { predictBurnout, PredictInput, PredictResult } from "../services/burnoutLogic";
+import { useTranslation } from "react-i18next";
 
 function getUser() {
   try { return JSON.parse(localStorage.getItem("user") ?? "{}"); } catch { return {}; }
@@ -41,6 +42,7 @@ export default function StudentDashboard() {
   // Force re-read on every mount
   const [user, setUser] = useState(() => getUser());
   const displayName     = user.name?.split(" ")[0] ?? "Student";
+  const { t }           = useTranslation();
 
   useEffect(() => {
     setUser(getUser());
@@ -111,7 +113,7 @@ export default function StudentDashboard() {
           {/* Header */}
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Welcome back, {displayName} 👋</h1>
+              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">{t("welcome")}, {displayName} 👋</h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">{user.rollNo ? `${user.rollNo} � ` : ""}{user.course ?? "Track your well-being and maintain academic balance."}</p>
             </div>
             <div className="flex items-center space-x-3">

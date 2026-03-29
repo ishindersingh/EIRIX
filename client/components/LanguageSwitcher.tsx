@@ -20,9 +20,11 @@ export default function LanguageSwitcher() {
   const change = (code: string) => {
     i18n.changeLanguage(code);
     localStorage.setItem("lang", code);
-    // RTL support for Arabic
+    document.documentElement.lang = code;
     document.documentElement.dir = code === "ar" ? "rtl" : "ltr";
     setOpen(false);
+    // Force full re-render so all components pick up new language
+    window.location.reload();
   };
 
   return (
