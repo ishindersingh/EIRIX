@@ -68,6 +68,37 @@ export function createServer() {
   app.get("/api/resources/sleep", handleSleepContent);
   app.get("/api/resources/stress-tips", handleStressTips);
 
+  // Nearby help proxy (avoids CORS on Overpass API)
+  app.get("/api/nearby", async (req, res) => {
+    const { lat, lon, radius = "5000" } = req.query as Record<string, string>;
+    if (!lat || !lon) { res.status(400).json({ error: "lat and lon required" }); return; }
+    const query = `
+      [out:json][timeout:25];
+      (
+        node["amenity"="hospital"](around:${radius},${lat},${lon});
+        node["amenity"="clinic"](around:${radius},${lat},${lon});
+        node["amenity"="doctors"](around:${radius},${lat},${lon});
+        node["amenity"="pharmacy"](around:${radius},${lat},${lon});
+        node["office"="ngo"](around:${radius},${lat},${lon});
+        node["social_facility"](around:${radius},${lat},${lon});
+        way["amenity"="hospital"](around:${radius},${lat},${lon});
+        way["amenity"="clinic"](around:${radius},${lat},${lon});
+      );
+      out center 20;
+    `;
+    try {
+      const r = await fetch("https://overpass-api.de/api/interpreter", {
+        method:  "POST",
+        body:    `data=${encodeURIComponent(query)}`,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+      const data = await r.json();
+      res.json(data);
+    } catch (e) {
+      res.status(502).json({ error: "Overpass API unreachable" });
+    }
+  });
+
   // EIRA chatbot routes
   app.post("/api/eira/chat", handleEiraChat);
   app.get("/api/eira/suggestions", handleEiraSuggestions);
