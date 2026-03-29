@@ -6,6 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import NearbyHelp from "../../components/NearbyHelp";
 
 interface Message {
   id: string;
@@ -295,26 +296,13 @@ export default function EIRAChatbot() {
           </button>
         </div>
 
-        {/* Crisis resources */}
+        {/* Nearby Help — replaces static crisis helplines */}
         <div className="glass rounded-3xl border border-red-200/50 dark:border-red-800/30 p-5 shadow-xl bg-red-50/30 dark:bg-red-950/10">
           <div className="flex items-center gap-2 mb-3">
             <Heart className="w-5 h-5 text-red-500" />
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Crisis Support</h3>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Crisis & Nearby Support</h3>
           </div>
-          <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
-            {[
-              { name: "iCall (India)",        number: "9152987821"    },
-              { name: "Vandrevala Foundation", number: "1860-2662-345" },
-              { name: "AASRA",                number: "9820466627"    },
-              { name: "iCall WhatsApp",       number: "9152987821"    },
-            ].map(({ name, number }) => (
-              <div key={name} className="flex justify-between items-center p-2 bg-white/50 dark:bg-white/5 rounded-xl">
-                <span className="font-medium">{name}</span>
-                <span className="font-bold text-red-600 dark:text-red-400">{number}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-3 text-center">Available 24/7 · Free & Confidential</p>
+          <NearbyHelp />
         </div>
       </div>
     </div>

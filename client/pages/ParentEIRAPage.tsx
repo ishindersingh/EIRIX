@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, RefreshCw, Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import NearbyHelp from "../components/NearbyHelp";
 
 // ── Parent-specific quick prompts ──────────────────────────────────────────────
 const QUICK_PROMPTS = [
@@ -281,21 +282,10 @@ export default function ParentEIRAPage() {
               </div>
             </div>
 
-            {/* Crisis */}
+            {/* Nearby Help — replaces static crisis helplines */}
             <div className="glass rounded-3xl border border-red-200/50 dark:border-red-800/30 p-5 shadow-xl bg-red-50/30 dark:bg-red-950/10">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-3">Crisis Helplines</h3>
-              <div className="space-y-2 text-xs">
-                {[
-                  { name: "iCall",        number: "9152987821"    },
-                  { name: "Vandrevala",   number: "1860-2662-345" },
-                  { name: "AASRA",        number: "9820466627"    },
-                ].map(({ name, number }) => (
-                  <div key={name} className="flex justify-between p-2 bg-white/50 dark:bg-white/5 rounded-xl">
-                    <span className="font-medium text-slate-600 dark:text-slate-300">{name}</span>
-                    <span className="font-bold text-red-600 dark:text-red-400">{number}</span>
-                  </div>
-                ))}
-              </div>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-3">Crisis & Nearby Support</h3>
+              <NearbyHelp />
             </div>
           </div>
         </div>
