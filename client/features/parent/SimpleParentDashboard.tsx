@@ -106,29 +106,49 @@ function MetricPill({ icon: Icon, label, value, color, warn }: {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function SimpleParentDashboard() {
   const { darkMode } = useTheme();
-  const [history, setHistory] = useState<BurnoutEntry[]>([]);
-  const [latest,  setLatest]  = useState<BurnoutEntry | null>(null);
+  const [history,     setHistory]     = useState<BurnoutEntry[]>([]);
+  const [latest,      setLatest]      = useState<BurnoutEntry | null>(null);
   const [studentName, setStudentName] = useState("Your Child");
+  const [studentRollNo, setStudentRollNo] = useState("");
+  const [inputRollNo, setInputRollNo] = useState("");
+  const [searching,   setSearching]   = useState(false);
+  const [notFound,    setNotFound]    = useState(false);
 
-  const load = () => {
+  const load = (rollNo?: string) => {
     try {
       const parentUser = JSON.parse(localStorage.getItem("user") ?? "{}");
-      const rollNo = parentUser.studentRollNo ?? "";
-      // Try to find burnout history keyed by student roll no first, then fall back to generic key
-      const key = rollNo ? `burnout_history_${rollNo}` : "burnout_history";
-      let stored = JSON.parse(localStorage.getItem(key) || "[]") as BurnoutEntry[];
-      // Also check generic key as fallback
-      if (!stored.length) {
-        stored = JSON.parse(localStorage.getItem("burnout_history") || "[]") as BurnoutEntry[];
-      }
+      const linked = rollNo ?? parentUser.studentRollNo ?? "";
+      setStudentRollNo(linked);
+      setStudentName(parentUser.studentName ?? linked ?? "Your Child");
+
+      if (!linked) { setHistory([]); setLatest(null); return; }
+
+      // Look up by roll no key first, then generic
+      const key    = `burnout_history_${linked}`;
+      let stored   = JSON.parse(localStorage.getItem(key) || "[]") as BurnoutEntry[];
+      if (!stored.length) stored = JSON.parse(localStorage.getItem("burnout_history") || "[]") as BurnoutEntry[];
+
       setHistory(stored);
       setLatest(stored[stored.length - 1] ?? null);
-      setStudentName(parentUser.studentName ?? "Your Child");
+      setNotFound(stored.length === 0);
     } catch {
-      setHistory([]);
-      setLatest(null);
+      setHistory([]); setLatest(null);
     }
   };
+
+  const searchByRollNo = () => {
+    if (!inputRollNo.trim()) return;
+    setSearching(true);
+    setNotFound(false);
+    // Save linked roll no to parent user
+    const parentUser = JSON.parse(localStorage.getItem("user") ?? "{}");
+    parentUser.studentRollNo = inputRollNo.trim().toUpperCase();
+    localStorage.setItem("user", JSON.stringify(parentUser));
+    load(inputRollNo.trim().toUpperCase());
+    setSearching(false);
+  };
+
+  const handleRefresh = () => load();
 
   useEffect(() => { load(); }, []);
 
@@ -156,7 +176,7 @@ export default function SimpleParentDashboard() {
         <p className="text-slate-500 dark:text-slate-400 max-w-sm text-sm leading-relaxed">
           <span className="font-bold text-purple-600 dark:text-purple-400">{studentName}</span> hasn't submitted a burnout assessment yet. Once they complete one on the Student Dashboard, their report will appear here automatically.
         </p>
-        <button onClick={load}
+        <button onClick={handleRefresh}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 transition-colors">
           <RefreshCw className="w-4 h-4" /> Check Again
         </button>
@@ -310,7 +330,7 @@ export default function SimpleParentDashboard() {
 
       {/* Refresh */}
       <div className="flex justify-end">
-        <button onClick={load}
+        <button onClick={handleRefresh}
           className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400 font-semibold hover:underline">
           <RefreshCw className="w-4 h-4" /> Refresh data
         </button>

@@ -16,6 +16,7 @@ import Resources from "./pages/Resources";
 import DeadlinePage from "./pages/DeadlinePage";
 import SettingsPage from "./pages/Settings";
 import ParentDashboard from "./pages/ParentDashboard";
+import ParentEIRAPage from "./pages/ParentEIRAPage";
 import MentorDashboardPage from "./pages/MentorDashboardPage";
 import DashboardPlaceholder from "./pages/DashboardPlaceholder";
 import NotFound from "./pages/NotFound";
@@ -50,6 +51,8 @@ const App = () => {
           <Route path="/deadlines" element={<DeadlinePage />} />
           <Route path="/settings"        element={<SettingsPage />} />
           <Route path="/parent/dashboard" element={<ParentDashboard />} />
+          <Route path="/parent/eira"      element={<ParentEIRAPage />} />
+          <Route path="/parent/eira"      element={<ParentEIRAPage />} />
           <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
           <Route path="/:role/dashboard" element={<DashboardPlaceholder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
