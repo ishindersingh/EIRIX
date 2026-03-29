@@ -116,9 +116,43 @@ export default function NearbyHelp() {
   const [filter,    setFilter]    = useState("all");
   const [expanded,  setExpanded]  = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [cityInput, setCityInput] = useState("");
+  const [searching, setSearching] = useState(false);
 
-  const load = () => {
+  const searchByCity = async () => {
+    if (!cityInput.trim()) return;
+    setSearching(true); setError("");
+    try {
+      // Geocode city using Nominatim (free, no key)
+      const geo = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&limit=1`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const geoData = await geo.json();
+      if (!geoData.length) { setError(`City "${cityInput}" not found. Try a different name.`); setSearching(false); return; }
+      const lat = parseFloat(geoData[0].lat);
+      const lon = parseFloat(geoData[0].lon);
+      load(lat, lon);
+    } catch {
+      setError("Geocoding failed. Check your internet connection.");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const load = (manualLat?: number, manualLon?: number) => {
     setLoading(true); setError("");
+
+    // If manual coords provided, skip geolocation
+    if (manualLat && manualLon) {
+      setLocation({ lat: manualLat, lon: manualLon });
+      fetchPlaces(manualLat, manualLon)
+        .then(setPlaces)
+        .catch(() => setError("Could not load nearby places. Make sure the dev server is running."))
+        .finally(() => setLoading(false));
+      return;
+    }
+
     if (!navigator.geolocation) {
       setError("Geolocation not supported by your browser."); setLoading(false); return;
     }
@@ -168,7 +202,7 @@ export default function NearbyHelp() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={load} disabled={loading}
+                <button onClick={() => load()} disabled={loading}
                   className="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-white/10 transition-colors disabled:opacity-50">
                   <RefreshCw className={cn("w-4 h-4 text-slate-400", loading && "animate-spin")} />
                 </button>
@@ -219,12 +253,37 @@ export default function NearbyHelp() {
                 </div>
               )}
               {error && !loading && (
-                <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800">
-                  <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">{error}</p>
-                    <button onClick={load} className="text-xs text-amber-600 dark:text-amber-400 font-bold hover:underline mt-1">Try again</button>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800">
+                    <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">{error}</p>
+                    </div>
                   </div>
+                  <div className="p-4 bg-white/60 dark:bg-white/5 rounded-2xl border border-white/40 dark:border-white/10 space-y-3">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Search by city name</p>
+                    <div className="flex gap-2">
+                      <input type="text" value={cityInput} onChange={e => setCityInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && searchByCity()}
+                        placeholder="e.g. Delhi, Mumbai, Chandigarh"
+                        className="flex-1 h-10 px-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500" />
+                      <button onClick={searchByCity} disabled={searching || !cityInput.trim()}
+                        className="px-4 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold disabled:opacity-50 transition-colors flex items-center gap-2">
+                        {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />} Search
+                      </button>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {["Delhi","Mumbai","Chandigarh","Bangalore","Chennai","Hyderabad","Pune","Kolkata"].map(city => (
+                        <button key={city} onClick={() => { setCityInput(city); }}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 transition-colors">
+                          {city}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={() => load()} className="w-full py-3 rounded-xl bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-sm font-bold hover:bg-amber-200 transition-colors">
+                    Try GPS Again
+                  </button>
                 </div>
               )}
               {!loading && (
@@ -260,7 +319,7 @@ export default function NearbyHelp() {
               className="p-1.5 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 transition-colors text-slate-400">
               <Maximize2 className="w-3.5 h-3.5" />
             </button>
-            <button onClick={load} disabled={loading} title="Refresh"
+            <button onClick={() => load()} disabled={loading} title="Refresh"
               className="p-1.5 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 transition-colors disabled:opacity-50">
               <RefreshCw className={cn("w-3.5 h-3.5 text-slate-400", loading && "animate-spin")} />
             </button>
@@ -277,16 +336,49 @@ export default function NearbyHelp() {
               </div>
             )}
 
-            {/* Error */}
+            {/* Error + manual city search fallback */}
             {error && !loading && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-700 dark:text-amber-300">{error}</p>
+              <div className="space-y-2">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 dark:text-amber-300">{error}</p>
+                  </div>
                 </div>
-                <button onClick={load}
-                  className="mt-2 w-full py-2 rounded-xl bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-bold hover:bg-amber-200 transition-colors">
-                  Try Again
+                {/* Manual city input */}
+                <div className="p-3 bg-white/60 dark:bg-white/5 rounded-xl border border-white/40 dark:border-white/10 space-y-2">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Search by city instead</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={cityInput}
+                      onChange={e => setCityInput(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && searchByCity()}
+                      placeholder="e.g. Delhi, Mumbai, Chandigarh"
+                      className="flex-1 h-8 px-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      onClick={searchByCity}
+                      disabled={searching || !cityInput.trim()}
+                      className="px-3 h-8 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold disabled:opacity-50 transition-colors flex items-center gap-1">
+                      {searching ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />}
+                      Go
+                    </button>
+                  </div>
+                  {/* Quick city buttons */}
+                  <div className="flex gap-1 flex-wrap">
+                    {["Delhi","Mumbai","Chandigarh","Bangalore","Chennai"].map(city => (
+                      <button key={city}
+                        onClick={() => { setCityInput(city); }}
+                        className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 transition-colors">
+                        {city}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={() => load()}
+                  className="w-full py-2 rounded-xl bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-bold hover:bg-amber-200 transition-colors">
+                  Try GPS Again
                 </button>
               </div>
             )}
@@ -320,7 +412,7 @@ export default function NearbyHelp() {
 
             {/* Empty */}
             {!loading && !error && places.length === 0 && (
-              <button onClick={load}
+              <button onClick={() => load()}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-bold hover:shadow-md transition-all flex items-center justify-center gap-2">
                 <MapPin className="w-3.5 h-3.5" /> Find Nearby Help
               </button>
