@@ -74,18 +74,5 @@ export function createServer() {
   app.post("/api/burnout/predict", handlePredict);
   app.get("/api/burnout/stats", handleStats);
 
-  // Weekly history (last 7 days mock — replace with DB later)
-  app.get("/api/burnout/history", (_req, res) => {
-    res.json([
-      { day: "Mon", score: 28 },
-      { day: "Tue", score: 35 },
-      { day: "Wed", score: 48 },
-      { day: "Thu", score: 52 },
-      { day: "Fri", score: 41 },
-      { day: "Sat", score: 33 },
-      { day: "Sun", score: 22 },
-    ]);
-  });
-
   return app;
 }

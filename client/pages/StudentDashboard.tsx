@@ -72,7 +72,21 @@ export default function StudentDashboard() {
         input,
       };
       const updated = [...existing.slice(-19), entry]; // keep last 20
-      localStorage.setItem("burnout_history", JSON.stringify(updated)); if (user.rollNo) { localStorage.setItem(`burnout_history_${user.rollNo}`, JSON.stringify(updated)); }
+      localStorage.setItem("burnout_history", JSON.stringify(updated));
+      if (user.rollNo) {
+        localStorage.setItem(`burnout_history_${user.rollNo}`, JSON.stringify(updated));
+      }
+      // POST to backend for real-time history
+      fetch("/api/burnout/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rollNo:  user.rollNo || "guest",
+          score:   res.burnout_score,
+          level:   res.risk_level,
+          insight: res.insights,
+        }),
+      }).catch(() => {});
     } catch {
       setError("Prediction failed. Make sure the dev server is running.");
     } finally {

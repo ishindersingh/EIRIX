@@ -238,6 +238,42 @@ export const handlePredict: RequestHandler = (req, res) => {
   }, 800);
 };
 
+// ── Real per-user history store ──────────────────────────────────────────────────────────────
+interface HistoryEntry {
+  rollNo:    string;
+  day:       string;
+  date:      string;
+  score:     number;
+  level:     string;
+  insight:   string;
+}
+
+// Map of rollNo -> last 20 entries
+const historyStore = new Map<string, HistoryEntry[]>();
+
+export const handleSaveHistory: RequestHandler = (req, res) => {
+  const { rollNo, score, level, insight } = req.body;
+  const key   = rollNo || "guest";
+  const prev  = historyStore.get(key) ?? [];
+  const entry: HistoryEntry = {
+    rollNo: key,
+    day:    new Date().toLocaleDateString("en-US", { weekday: "short" }),
+    date:   new Date().toISOString(),
+    score,
+    level,
+    insight,
+  };
+  const updated = [...prev.slice(-19), entry];
+  historyStore.set(key, updated);
+  res.json({ success: true, history: updated });
+};
+
+export const handleGetHistory: RequestHandler = (req, res) => {
+  const rollNo = (req.query.rollNo as string) || "guest";
+  const entries = historyStore.get(rollNo) ?? [];
+  res.json(entries.map(e => ({ day: e.day, score: e.score, level: e.level, date: e.date, insight: e.insight })));
+};
+
 function getRecommendations(level: string, score: number): string[] {
   if (level === "high") return [
     "Schedule an urgent 1-on-1 with your mentor",
